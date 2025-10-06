@@ -1,6 +1,6 @@
 fmeflow:
   image:
-    tag: 
+    tag:
     registry: docker.io
     namespace: safesoftware
     # Supported values: Always or IfNotPresent
@@ -20,6 +20,7 @@ fmeflow:
 
     # This user and password must be a database user that can create databases and users in the postgresql database
     adminUser: postgres
+    adminPassword: a6av3abwzi
     adminPasswordSecret:
     adminPasswordSecretKey:  postgres-password
     adminDatabase: postgres
@@ -27,7 +28,7 @@ fmeflow:
     maxThreads: 200
     experimentalJavaFlags: false
     hikariDBMaxConnections: 30
-  utilityengine:
+  fmeutility:
     enabled: true
   forcePasswordChange: true
   debugLevel: "NONE"
@@ -66,10 +67,24 @@ fmeflow:
         affinity: {}
         nodeSelector: {}
         tolerations: []
+        engineProperties:
         resources:
           requests:
             memory: 512Mi
             cpu: 200m
+      - name: "dynamic-group"
+        engines: 0
+        type: "DYNAMIC"
+        labels: {}
+        affinity: {}
+        nodeSelector: {}
+        tolerations: []
+        engineProperties:
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 200m
+
 
 
 deployment:
@@ -125,11 +140,15 @@ annotations:
   websocket:
     statefulset: {}
     template: {}
+  database:
+    statefulset: {}
+    template: {}
 
 labels:
   core: {}
   queue: {}
   websocket: {}
+  database: {}
 
 scheduling:
   core:
@@ -141,6 +160,10 @@ scheduling:
     nodeSelector: {}
     tolerations: []
   websocket:
+    affinity: {}
+    nodeSelector: {}
+    tolerations: []
+  database:
     affinity: {}
     nodeSelector: {}
     tolerations: []
@@ -165,6 +188,18 @@ resources:
     requests:
       memory: 256Mi
       cpu: 100m
+  fmeutility:
+    requests:
+      memory: 1.5Gi
+      cpu: 200m
+  database:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+  dbinit:
+    requests:
+      memory: 128Mi
+      cpu: 100m
 
 storage:
   useHostDir: false
@@ -179,20 +214,8 @@ storage:
     class:
     path:
 
-# It is recommended not to modify those parameters
-# For more options regarding PostgreSQL deployement, check the helm chart documentation:
-# https://github.com/bitnami/charts/tree/master/bitnami/postgresql
 postgresql:
-  image: 
-    tag: 16.1.0-debian-11-r19
-  primary:
-    persistence:
-      existingClaim: fmeflow-postgresql
-    resources:
-      requests:
-        memory: 256Mi
-        cpu: 100m
-  auth:
-    postgresqlPassword: a6av3abwzi
+  image:
+    tag: postgres:17.5-bullseye
   livenessProbe:
     initialDelaySeconds: 300

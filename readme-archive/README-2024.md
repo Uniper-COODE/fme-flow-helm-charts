@@ -2,43 +2,6 @@
 
 This repository houses the helm charts for deploying FME Flow and the FME Flow Remote Engine Service. The remainder of this readme is focussed on the FME Flow Helm chart. To see the readme for the Remote Engine Service, see its [Readme](./README-RemoteEngine.md)
 
-## Important Notice: Bitnami PostgreSQL Chart Changes (August 28, 2025)
-
-Note: Applies only to Helm chart versions < 2.5.0. From 2.5.0+, we use the official PostgreSQL image (no Bitnami dependency).
-
-**Bitnami is making changes to their PostgreSQL Helm chart and container images, scheduled for August 28, 2025.** After this date, only the latest PostgreSQL image tag will be available on Docker Hub, and older tags will be removed. This will impact users who rely on specific image tags for PostgreSQL.
-
-**What you need to do:**
-
-1. **Switch to the legacy image repository:**
-   - Set the image repository to `bitnamilegacy/postgresql` to continue using older tags.
-2. **Allow image substitutions:**
-   - The Bitnami chart will block deployment with image substitutions unless you set `global.security.allowInsecureImages=true`.
-
-You can do both in one command:
-
-```
-helm install ... \
-  --set postgresql.image.repository=bitnamilegacy/postgresql \
-  --set global.security.allowInsecureImages=true \
-  ...
-```
-
-Or in your `values.yaml`:
-
-```yaml
-global:
-  security:
-    allowInsecureImages: true
-postgresql:
-  image:
-    repository: bitnamilegacy/postgresql
-```
-
-If you do not make these changes, your deployments may fail to pull or start the required PostgreSQL image after August 28, 2025.
-
-For more details, see the [Bitnami announcement](https://github.com/bitnami/containers/issues/83267), [bitnamilegacy Docker Hub](https://hub.docker.com/r/bitnamilegacy/postgresql), and [Bitnami chart image verification documentation](https://github.com/bitnami/charts/issues/30850).
-
 ## Helm Chart Rename
 
 Starting with FME Flow 2024.0, the helm chart has been renamed from having separate charts for each major release (e.g., `safesoftware/fmeserver-2023-1`, `safesoftware/fmeserver-2023-2`, etc) to having a single chart `safesoftware/fmeflow`.
@@ -57,7 +20,7 @@ Starting with 2024.1, we had to make some changes to the deployment that are not
 <b>2024.0</b>: `helm install --version 1 ...`<br>
 <b>2024.1+</b>: `helm install ...` or `helm install --version 2 ...` <br>
 
-You can view all versions of the helm chart by running the command `helm search repo fmeflow --versions` after adding the repository. It is a good idea to make your deployments reproducible to pin an exact version of the helm chart when deploying and use the same version for any helm operations you need to perform on that deployment. You can pin a helm chart version with the `--version` flag. For example, `helm install --version 2.2.0 ...`
+You can view all versions of the helm chart by running the command `helm search repo fmeflow --versions` after adding the repository. It is a good idea to make your deployments reproducible to pin an exact version of the helm chart when deploying and use the same version for any helm operations you need to perform on that deployment. You can pin a helm chart version with the `--version` flag. For example, `helm install --version 2.0.4 ...`
 
 ## Prerequisites
 
@@ -66,7 +29,7 @@ To add the Safe Software charts repository:
 
 ## Installing the Chart
 
-To quickly get started, find the latest docker image tag for FME Flow [on Docker Hub](https://hub.docker.com/r/safesoftware/fmeflow-core/tags?name=2025.0). It is recommended to use a date-stamped tag from this list. For example: `2025.0-20250303`.
+To quickly get started, find the latest docker image tag for FME Flow [on Docker Hub](https://hub.docker.com/r/safesoftware/fmeflow-core/tags?name=2024.2). It is recommended to use a date-stamped tag from this list. For example: `2024.2.2-20250115`.
 
 Then run the command specifying the docker tag found above:
 `helm install fmeflow safesoftware/fmeflow --set fmeflow.image.tag=<docker_tag>`
@@ -81,7 +44,7 @@ The following table lists the configurable parameters of the FME Flow helm chart
 
 |      Parameter      |               Description             |                    Default                |
 |---------------------|---------------------------------------|-------------------------------------------|
-| `fmeflow.image.tag` | The docker image tag to use. |  `Nil` You must provide a tag. You can find available tags [here](https://hub.docker.com/r/safesoftware/fmeflow-core/tags?page=1&name=2025.0&ordering=last_updated). |
+| `fmeflow.image.tag` | The docker image tag to use. |  `Nil` You must provide a tag. You can find available tags [here](https://hub.docker.com/r/safesoftware/fmeflow-core/tags?page=1&name=2024.1&ordering=last_updated). |
 | `fmeflow.image.pullPolicy` | Image pull policy. IfNotPresent means that the image is pulled only if it is not already present on the node. If this is changed to "Always", then the node will always try to pull to make sure it has the latest version of that tag. | `IfNotPresent` |
 | `fmeflow.image.registry` | Docker registry | `docker.io` This parameter should not be changed. |
 | `fmeflow.image.namespace` | Docker registry namespace | `safesoftware` This parameter should not be changed. |
@@ -101,9 +64,7 @@ The following table lists the configurable parameters of the FME Flow helm chart
 | `resources.web` | [Web CPU/Memory resource requests/limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) | Memory: `1Gi`, CPU: `200m` |
 | `resources.queue` | [Queue CPU/Memory resource requests/limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) | Memory: `128Mi`, CPU: `100m` |
 | `resources.websocket` | [Websocket CPU/Memory resource requests/limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) | Memory: `256Mi`, CPU: `100m` |
-| `resources.fmeutility` | [FMEUtility CPU/Memory resource requests/limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) | Memory: `1.5Gi`, CPU: `200m`|
-| `resources.dbinit` | [dbinit CPU/Memory resource requests/limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) | Memory: `128Mi`, CPU: `100m` |
-| `storage.reclaimPolicy` | [Volume Reclaim Policy](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaim-policy). Only required if useHostDir is enabled. | `Delete` |
+| `storage.reclaimPolicy` | [Volume Reclaim Policy](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaim-policy) | `Delete` |
 | `storage.useHostDir` | Allows to map data and database volumes to a directory on a node. Requires path parameters. | `false` |
 | `storage.postgresql.class` | Storage class for PostgreSQL data. Ignored if host dir mapping is used. | `Nil` |
 | `storage.postgresql.size` | PostgreSQL volume size | `1Gi` |
@@ -181,16 +142,6 @@ The following table lists the configurable parameters of the FME Flow helm chart
 | `labels.core` | Labels to apply to the core pods | `{}` |
 | `labels.queue` | Labels to apply to the core pods | `{}` |
 | `labels.websocket` | Labels to apply to the core pods | `{}` |
-| `additionalStorage` | An array of additional volumes to mount into the Core, Web and Engine pods. This can be useful when needing to store data in a different volume from the system share, or if you wanted to share data with other things running in your cluster. Unless `existingClaim` is used, this will create a new persistentVolumeClaim which depending on your storage class will likely create an empty volume for you to use. | `[]`|
-| `additionalStorage[].name` | The name of the volume. This will be used as the claim name and volume name. | `Nil` |
-| `additionalStorage[].mountPath` | The path inside of the containers to mount the volume. This will be identical in the pods it is mounted in. | `Nil` |
-| `additionalStorage[].accessMode` | Access mode for the storage. This should be ReadWriteMany if your pods will be deployed across multiple nodes. | `Nil` |
-| `additionalStorage[].size` | Volume size. | `Nil` |
-| `additionalStorage[].class` | Storage class for the volume. | `Nil` |
-| `additionalStorage[].existingClaim` | Name of an existing PersistentVolumeClaim to use. This is useful if you want to mount an existing volume mounted inside another app in the cluster. Specifying this will set the `claimName` to this and will not create a new persistent volume claim. | `Nil` |
-| `additionalStorage[].useHostDir` | Create the volume in a directory on the node instead of using a storage class. | `Nil` |
-| `additionalStorage[].path` | Absolute path where data should be stored on host. Only required if useHostDir is enabled. | `Nil` |
-| `additionalStorage[].reclaimPolicy` | [Volume Reclaim Policy](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaim-policy). Only required if useHostDir is enabled. | `Nil` |
 
 ## Development
 
